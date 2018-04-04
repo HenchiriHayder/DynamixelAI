@@ -1,0 +1,115 @@
+<positionForm id="0" type="move">
+    <dynamixel id="0" position="349" />
+    <dynamixel id="1" position="612" />
+    <dynamixel id="2" position="611" />
+    <dynamixel id="3" position="639" />
+</positionForm>
+<positionForm id="1" type="move">
+    <dynamixel id="0" position="259" />
+    <dynamixel id="1" position="612" />
+    <dynamixel id="2" position="611" />
+    <dynamixel id="3" position="664" />
+</positionForm>
+<positionForm id="2" type="move">
+    <dynamixel id="0" position="433" />
+    <dynamixel id="1" position="528" />
+    <dynamixel id="2" position="498" />
+    <dynamixel id="3" position="664" />
+</positionForm>
+<positionForm id="3" type="move">
+    <dynamixel id="0" position="432" />
+    <dynamixel id="1" position="385" />
+    <dynamixel id="2" position="499" />
+    <dynamixel id="3" position="434" />
+</positionForm>
+<positionForm id="4" type="happy">
+    <dynamixel id="0" position="432" />
+    <dynamixel id="1" position="386" />
+    <dynamixel id="2" position="498" />
+    <dynamixel id="3" position="434" />
+</positionForm>
+<positionForm id="6" type="move">
+    <dynamixel id="0" position="463" />
+    <dynamixel id="1" position="768" />
+    <dynamixel id="2" position="785" />
+    <dynamixel id="3" position="607" />
+</positionForm>
+<positionForm id="7" type="fear">
+    <dynamixel id="0" position="464" />
+    <dynamixel id="1" position="768" />
+    <dynamixel id="2" position="785" />
+    <dynamixel id="3" position="606" />
+</positionForm>
+<positionForm id="8" type="wakeUp">
+    <dynamixel id="0" position="361" />
+    <dynamixel id="1" position="528" />
+    <dynamixel id="2" position="498" />
+    <dynamixel id="3" position="606" />
+</positionForm>
+<positionForm id="8" type="happy">
+    <dynamixel id="0" position="382" />
+    <dynamixel id="1" position="809" />
+    <dynamixel id="2" position="794" />
+    <dynamixel id="3" position="587" />
+</positionForm>
+<positionForm id="9" type="happy">
+    <dynamixel id="0" position="377" />
+    <dynamixel id="1" position="698" />
+    <dynamixel id="2" position="795" />
+    <dynamixel id="3" position="544" />
+</positionForm>
+<positionForm id="10" type="surprise">
+    <dynamixel id="0" position="349" />
+    <dynamixel id="1" position="528" />
+    <dynamixel id="2" position="510" />
+    <dynamixel id="3" position="434" />
+</positionForm>
+<positionForm id="11" type="surprise">
+    <dynamixel id="0" position="867" />
+    <dynamixel id="1" position="528" />
+    <dynamixel id="2" position="510" />
+    <dynamixel id="3" position="434" />
+</positionForm>
+<positionForm id="12" type="surprise">
+    <dynamixel id="0" position="50" />
+    <dynamixel id="1" position="529" />
+    <dynamixel id="2" position="510" />
+    <dynamixel id="3" position="433" />
+</positionForm>
+<positionForm id="13" type="surprise">
+    <dynamixel id="0" position="337" />
+    <dynamixel id="1" position="528" />
+    <dynamixel id="2" position="510" />
+    <dynamixel id="3" position="716" />
+</positionForm>
+<positionForm id="14" type="surprise">
+    <dynamixel id="0" position="337" />
+    <dynamixel id="1" position="529" />
+    <dynamixel id="2" position="510" />
+    <dynamixel id="3" position="440" />
+</positionForm>
+<!--<positionForm id="15" type="move">
+    <dynamixel id="0" position="360"></dynamixel>
+    <dynamixel id="1" position="529"></dynamixel>
+    <dynamixel id="2" position="497"></dynamixel>
+    <dynamixel id="3" position="188"></dynamixel>
+</positionForm>--!>
+-->
+<positionForm id="15" type="sleep">
+    <dynamixel id="0" position="404" />
+    <dynamixel id="1" position="934" />
+    <dynamixel id="2" position="842" />
+    <dynamixel id="3" position="770" />
+</positionForm>
+<positionForm id="16" type="move">
+    <dynamixel id="0" position="664"></dynamixel>
+    <dynamixel id="1" position="613"></dynamixel>
+    <dynamixel id="2" position="612"></dynamixel>
+    <dynamixel id="3" position="665"></dynamixel>
+</positionForm>
+<positionForm id="17" type="wakeUp">
+    <dynamixel id="0" position="606"></dynamixel>
+    <dynamixel id="1" position="526"></dynamixel>
+    <dynamixel id="2" position="499"></dynamixel>
+    <dynamixel id="3" position="729"></dynamixel>
+</positionForm>

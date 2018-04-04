@@ -1,0 +1,7 @@
+ofxGui
+ofxOpenCv
+ofxXmlSettings
+ofxCv
+ofxDynamixel
+ofxGuiExtended
+ofxInputField
