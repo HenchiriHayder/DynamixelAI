@@ -9,6 +9,7 @@
 #include "ofxInputField.h"
 #include "ofxGuiExtended.h"
 #include "MoveThread.h"
+#include "VideoThread.h"
 
 class ofApp : public ofBaseApp {
 
@@ -201,5 +202,8 @@ private:
 	//----------------------------------------------------------
 
 	 std::vector<ofxCvBlob> blobs;
+
+	 VideoThread videoThread;
+	 ofRectangle cur;
 };
 

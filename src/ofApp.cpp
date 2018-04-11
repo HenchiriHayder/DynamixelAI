@@ -10,35 +10,36 @@ void ofApp::setup() {
 	gui11.setDefaultWidth(300);
 	myFont.load("arial.ttf", 14);
 
-	camWidth = 320;  // try to grab at this size.
-	camHeight = 240;
-	gui11.setDefaultWidth(300);
-	panelHeaderColor.set(255, 128, 0, 1);
-	buttonColor.set(0, 128, 255, 1);
-	//get back a list of devices.
-	vector<ofVideoDevice> devices = vidGrabber.listDevices();
+	//camWidth = 320;  // try to grab at this size.
+	//camHeight = 240;
+	//gui11.setDefaultWidth(300);
+	//panelHeaderColor.set(255, 128, 0, 1);
+	//buttonColor.set(0, 128, 255, 1);
+	////get back a list of devices.
+	//vector<ofVideoDevice> devices = vidGrabber.listDevices();
 
-	for (size_t i = 0; i < devices.size(); i++) {
-		if (devices[i].bAvailable) {
-			//log the device
-			ofLogNotice() << devices[i].id << ": " << devices[i].deviceName;
-		}
-		else {
-			//log the device and note it as unavailable
-			ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
-		}
-	}
+	//for (size_t i = 0; i < devices.size(); i++) {
+	//	if (devices[i].bAvailable) {
+	//		//log the device
+	//		ofLogNotice() << devices[i].id << ": " << devices[i].deviceName;
+	//	}
+	//	else {
+	//		//log the device and note it as unavailable
+	//		ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
+	//	}
+	//}
 
-	vidGrabber.setDeviceID(0);
-	vidGrabber.setDesiredFrameRate(30);
-	vidGrabber.initGrabber(camWidth, camHeight);
+	//vidGrabber.setDeviceID(0);
+	//vidGrabber.setDesiredFrameRate(30);
+	//vidGrabber.initGrabber(camWidth, camHeight);
 
-	videoInverted.allocate(camWidth, camHeight, OF_PIXELS_RGB);
-	videoTexture.allocate(videoInverted);
-	ofSetVerticalSync(true);
+	//videoInverted.allocate(camWidth, camHeight, OF_PIXELS_RGB);
+	//videoTexture.allocate(videoInverted);
+	//ofSetVerticalSync(true);
 
-	finder.setup("haarcascade_frontalface_default.xml");
+	//finder.setup("haarcascade_frontalface_default.xml");
 
+	videoThread.startThread();
 
 	setGui22();
 	setGui11();
@@ -216,6 +217,12 @@ void ofApp::update() {
 		finder.findHaarObjects(img);
 	}
 
+	videoThread.lock();
+	img.setFromPixels(videoThread.vidGrabber.getPixels());
+	cur = videoThread.cur;
+
+	videoThread.unlock();
+
 
 	if (taille > 0) {
 		//---------------------------------------------------------------
@@ -287,35 +294,17 @@ void ofApp::draw() {
 
 
 		ofSetHexColor(0xffffff);
-		//colorImg.draw(750, 10);
 		img.draw(0, 0);
-		/*ofNoFill();
-		ofRect(curApp.x + 750, curApp.y + 10, curApp.width, curApp.height);*/
 
-		ofNoFill();
-		for (unsigned int i = 0; i < finder.blobs.size(); i++)
-		{
-			ofRectangle cur = finder.blobs[i].boundingRect;
-			ofRect(cur.x, cur.y, cur.width, cur.height);
-		}
-
-
-		blobs = finder.blobs;
 		
-		if (finder.blobs.size() >= 1) {
+		if (cur.getArea() > 10) {
 			moveThread.stop();
-		sort(finder.blobs.begin(), finder.blobs.end(), sort_carea_compare);
-
-		//cout << "the blob size is : " << finder.blobs[0].area << endl;
-
-		ofRectangle cur = finder.blobs[0].boundingRect;
-		//ofRect(cur.x + 750, cur.y + 10, cur.width, cur.height);
 
 		if (cur.x + (cur.width / 2) < camWidth / 4) {
 		puts("+x\n");
 		if (dynamixels[0] != NULL) {
 
-		if (finder.blobs[0].area < (camWidth*camHeight) / 15) {
+		if (cur.getArea() < (camWidth*camHeight) / 15) {
 		dynamixels[0]->getDynamixel()->move(dynamixels[0]->getCurrentPosition() + 15, 50);
 		}
 		else {
@@ -326,7 +315,7 @@ void ofApp::draw() {
 		if (cur.x + (cur.width / 2) > (3 * camWidth) / 4) {
 		puts("-x\n");
 		if (dynamixels[0] != NULL) {
-		if (finder.blobs[0].area < (camWidth*camHeight) / 15) {
+		if (cur.getArea() < (camWidth*camHeight) / 15) {
 		dynamixels[0]->getDynamixel()->move(dynamixels[0]->getCurrentPosition() - 15, 50);
 		}
 		else {
@@ -339,7 +328,7 @@ void ofApp::draw() {
 		if (cur.y + (cur.height / 2) < camHeight / 4) {
 		puts("+y\n");
 		if (dynamixels[3] != NULL) {
-		if (finder.blobs[0].area < (camWidth*camHeight) / 15) {
+		if (cur.getArea() < (camWidth*camHeight) / 15) {
 		dynamixels[3]->getDynamixel()->move(dynamixels[3]->getCurrentPosition() - 15, 50);
 		}
 		else {
@@ -350,7 +339,7 @@ void ofApp::draw() {
 		if (cur.y + (cur.height / 2) > (3 * camHeight) / 4) {
 		puts("-y\n");
 		if (dynamixels[3] != NULL) {
-		if (finder.blobs[0].area < (camWidth*camHeight) / 15) {
+		if (cur.getArea() < (camWidth*camHeight) / 15) {
 		dynamixels[3]->getDynamixel()->move(dynamixels[3]->getCurrentPosition() + 15, 50);
 		}
 		else {
