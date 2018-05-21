@@ -1,4 +1,4 @@
-#include "ofApp.h"
+﻿#include "ofApp.h"
 #include <iostream>
 #include <string>
 #include <stdlib.h>
@@ -10,46 +10,45 @@ void ofApp::setup() {
 	gui11.setDefaultWidth(300);
 	myFont.load("arial.ttf", 14);
 
-	//camWidth = 320;  // try to grab at this size.
-	//camHeight = 240;
-	//gui11.setDefaultWidth(300);
-	//panelHeaderColor.set(255, 128, 0, 1);
-	//buttonColor.set(0, 128, 255, 1);
-	////get back a list of devices.
-	//vector<ofVideoDevice> devices = vidGrabber.listDevices();
-
-	//for (size_t i = 0; i < devices.size(); i++) {
-	//	if (devices[i].bAvailable) {
-	//		//log the device
-	//		ofLogNotice() << devices[i].id << ": " << devices[i].deviceName;
-	//	}
-	//	else {
-	//		//log the device and note it as unavailable
-	//		ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
-	//	}
-	//}
-
-	//vidGrabber.setDeviceID(0);
-	//vidGrabber.setDesiredFrameRate(30);
-	//vidGrabber.initGrabber(camWidth, camHeight);
-
-	//videoInverted.allocate(camWidth, camHeight, OF_PIXELS_RGB);
-	//videoTexture.allocate(videoInverted);
-	//ofSetVerticalSync(true);
-
-	//finder.setup("haarcascade_frontalface_default.xml");
-
-	videoThread.startThread();
-
-	setGui22();
 	setGui11();
-	setGui55();
-	setGuiHH();
 
+	ofSetVerticalSync(true);
+
+	camWidth = 640;	// try to grab at this size.
+	camHeight = 480;
+
+
+	int deviceId = -1;
+
+	ofVideoGrabber temp_grabber;
+
+
+	vector<ofVideoDevice> devices = temp_grabber.listDevices();
+
+	for (size_t i = 0; i < devices.size(); i++) {
+		if (devices[i].bAvailable) {
+			//log the device
+			ofLogNotice() << devices[i].id << ": " << devices[i].deviceName;
+		}
+		else {
+			//log the device and note it as unavailable
+			ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
+		}
+	}
+
+	videoTexture.allocate(camWidth, camHeight, GL_RGB);
+
+	threadedObject.setup(0, camWidth, camHeight, false);
+
+	temp_grabber.close();
 
 	moveX = false;
 	moveY = false;
-
+	moveToReactionPositionHappy = false;
+	moveToReactionPositionSurprise = false;
+	returnToInitialPosition = false;
+	//----------------------------------------------------------------------------------------------------
+	//----------------------------------------------------------------------------------------------------
 	if (myXml.loadFile("myXml.xml")) {
 		message = "myXml.xml loaded!";
 	}
@@ -129,9 +128,12 @@ void ofApp::setup() {
 		myXml.popTag();
 	}
 
+	classifier.load("expressions");
+
+	threadedObject.start();
+	tracker.setup();
+	tracker.setRescale(.5);
 	time = ofGetElapsedTimef();
-
-
 
 }
 
@@ -171,14 +173,11 @@ void ofApp::scanPressed() {
 	cout << std::stoi((string)maximumIDs) << endl;
 	connect(((string)USB2Dynamixel_Ports).c_str(), 1.0, std::stoi((string)baudrates), std::stoi((string)maximumIDs));
 
-
 	if (taille > 0) {
 		cout << "taille > 0" << endl;
-		setGui22();
 		setGui33();
 		setGui55();
 		setGuiHH();
-
 		int randomPositionWakeUp = rand() % ((positionsVectorWakeUp.size() - 1) - 0 + 1) + 0;
 		//randomPosition = rangeRandomAlg2(0, positionsVector.size() - 1);
 		cout << "\n******************************** " << endl;
@@ -196,7 +195,6 @@ void ofApp::scanPressed() {
 		moveThread.setup(positionsVectorMove, dynamixels);
 		moveThread.start();
 
-
 	}
 
 }
@@ -211,30 +209,26 @@ static bool sort_carea_compare(const ofxCvBlob & a, const ofxCvBlob & b) {
 }
 //--------------------------------------------------------------
 void ofApp::update() {
-	vidGrabber.update();
-	if (vidGrabber.isFrameNew()) {
-		img = vidGrabber.getPixelsRef();
-		finder.findHaarObjects(img);
+
+	//----------------------------------------------------------------------------------------------------------------
+	//----------------------------------------------------------------------------------------------------------------
+	threadedObject.lock();
+	testImage.setFromPixels(threadedObject.vidGrabber.getPixels());
+	if (tracker.update(toCv(threadedObject.vidGrabber))) {
+		classifier.classify(tracker);
 	}
+	threadedObject.unlock();
 
-	videoThread.lock();
-	img.setFromPixels(videoThread.vidGrabber.getPixels());
-	cur = videoThread.cur;
-
-	videoThread.unlock();
-
-
-	if (taille > 0) {
+	if (taille > 0 && robotMoving) {
 		//---------------------------------------------------------------
 		brightness = 0;
 		for (int i = 0; i < camWidth; i++) {
 			for (int j = 0; j < camHeight; j++) {
-				ofColor cur = img.getColor(i, j);
+				ofColor cur = testImage.getColor(i, j);
 				brightness += cur.getBrightness();
 			}
 		}
 
-		//cout << "brightness = " << brightness << endl;
 
 		if (brightness < 25000000) {
 			brightnessFrameNumber++;
@@ -242,12 +236,10 @@ void ofApp::update() {
 
 		else {
 			brightnessFrameNumber = 0;
-			/*if (ofGetElapsedTimef() - time > 10 && !moveThread.isThreadRunning()) {
-			moveThread.start();
-			}*/
+
 		}
 
-		//cout << "MoveThreadIsRunning = " << moveThread.isThreadRunning() << endl;
+		cout << "MoveThreadIsRunning = " << moveThread.isThreadRunning() << endl;
 
 		if (brightnessFrameNumber > 50 && !isSleeping) {
 			cout << "sleep mode !!! " << endl;
@@ -286,76 +278,256 @@ void ofApp::update() {
 		}
 
 
+		if (tracker.getFound()) {
+			if (moveThread.isThreadRunning()) {
+				moveThread.stop();
+				faceDetected = true;
+				moveThread.IsFaceDetected(faceDetected);
+			}
+			time = ofGetElapsedTimef();
+
+
+			if (moveX && !dynamixels[0]->getDynamixel()->getControlTable()->moving()) {
+				moveX = false;
+			}
+			if (moveY && !dynamixels[3]->getDynamixel()->getControlTable()->moving()) {
+				moveY = false;
+			}
+			if (!moveX && tracker.getPosition().x < (2 * camWidth) / 5) {
+				puts("+x\n");
+				moveX = true;
+				dynamixels[0]->getDynamixel()->move(dynamixels[0]->getCurrentPosition() + 30, 30);
+			}
+			if (!moveX && tracker.getPosition().x >(3 * camWidth) / 5) {
+				puts("-x\n");
+				moveX = true;
+				dynamixels[0]->getDynamixel()->move(dynamixels[0]->getCurrentPosition() - 30, 30);
+			}
+			if (moveX && (unsigned)(tracker.getPosition().x - 256) < 128) {
+				puts("stop moveX \n");
+				moveX = false;
+				dynamixels[0]->getDynamixel()->move(dynamixels[0]->getCurrentPosition(), 30);
+			}
+
+
+			if (!moveY && tracker.getPosition().y < (2 * camHeight) / 5) {
+				puts("+y\n");
+				moveY = true;
+				dynamixels[3]->getDynamixel()->move(dynamixels[3]->getCurrentPosition() - 30, 30);
+			}
+			if (!moveY && tracker.getPosition().y >(3 * camHeight) / 5) {
+				puts("-y\n");
+				moveY = true;
+				dynamixels[3]->getDynamixel()->move(dynamixels[3]->getCurrentPosition() + 30, 30);
+			}
+			if (moveY && (unsigned)(tracker.getPosition().y - 192) < 96) {
+				puts("stop moveY \n");
+				moveY = false;
+				dynamixels[3]->getDynamixel()->move(dynamixels[3]->getCurrentPosition(), 30);
+			}
+		}
+		else {
+			smileExpressionCount = 0;
+			surprisedExpressionCount = 0;
+		}
 	}
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
 
+	if (taille > 0 && robotMoving) {
+		int servoMoteurID;
+		int t_x = 0;
+		int t_y = 0;
 
 		ofSetHexColor(0xffffff);
-		img.draw(0, 0);
 
-		
-		if (cur.getArea() > 10) {
-			moveThread.stop();
+		//videoTexture.draw(t_x, t_y, camWidth / 3, camHeight / 3);
+		testImage.draw(t_x, t_y, camWidth / 2, camHeight / 2);
 
-		if (cur.x + (cur.width / 2) < camWidth / 4) {
-		puts("+x\n");
-		if (dynamixels[0] != NULL) {
+		ofPushMatrix();
+		ofTranslate(t_x, t_y);
+		ofScale(1 / 2.0, 1 / 2.0);
+		tracker.draw();
+		ofPopMatrix();
 
-		if (cur.getArea() < (camWidth*camHeight) / 15) {
-		dynamixels[0]->getDynamixel()->move(dynamixels[0]->getCurrentPosition() + 15, 50);
+
+		if (tracker.getFound()) {
+			int w = 100, h = 12;
+			ofPushStyle();
+			ofPushMatrix();
+			ofTranslate(5, 10);
+			int n = classifier.size();
+			int primary = classifier.getPrimaryExpression();
+			for (int i = 0; i < n; i++) {
+				ofSetColor(i == primary ? ofColor::red : ofColor::black);
+				ofDrawRectangle(0, 0, w * classifier.getProbability(i) + .5, h);
+				ofSetColor(255);
+				ofDrawBitmapString(classifier.getDescription(i), 5, 9);
+				ofTranslate(0, h + 5);
+			}
+			ofPopMatrix();
+			ofPopStyle();
+
+			if (primary == 2 && classifier.getProbability(primary) + .5 > 1.4200) {
+				smileExpressionCount++;
+				surprisedExpressionCount = 0;
+				//cout << "trackerThread.classifier.getProbability(i) + .5 = " << classifier.getProbability(primary) + .5 << endl;
+			}
+
+			if (primary == 0 && classifier.getProbability(primary) + .5 > 1.4200) {
+				surprisedExpressionCount++;
+				smileExpressionCount = 0;
+				//cout << "trackerThread.classifier.getProbability(i) + .5 = " << classifier.getProbability(primary) + .5 << endl;
+			}
+
+			if (smileExpressionCount > 75) {
+				cout << "Expression detected = Smile" << endl;
+				smileExpressionCount = 0;
+				//store the current position in a vector here
+				moveToReactionPositionHappy = true;
+				returnToInitialPosition = true;
+			}
+
+			if (surprisedExpressionCount > 75) {
+				cout << "Expression detected = Surprised" << endl;
+				surprisedExpressionCount = 0;
+				moveToReactionPositionSurprise = true;
+				returnToInitialPosition = true;
+			}
+
+			//if (tracker.getOrientation().z > 0.5  && classifier.getProbability(primary) + .5 < 1)
+			if (tracker.getOrientation().z > 0.5) {
+				cout << "tracker.getOrientation().z = " << tracker.getOrientation().z << endl;
+				tiltedFaceFrameNumber++;
+			}
+
+			if (tiltedFaceFrameNumber > 50) {
+				tiltedFaceDetected = true;
+			}
+
 		}
 		else {
-		dynamixels[0]->getDynamixel()->move(dynamixels[0]->getCurrentPosition() + 30, 50);
-		}
-		}
-		}
-		if (cur.x + (cur.width / 2) > (3 * camWidth) / 4) {
-		puts("-x\n");
-		if (dynamixels[0] != NULL) {
-		if (cur.getArea() < (camWidth*camHeight) / 15) {
-		dynamixels[0]->getDynamixel()->move(dynamixels[0]->getCurrentPosition() - 15, 50);
-		}
-		else {
-		dynamixels[0]->getDynamixel()->move(dynamixels[0]->getCurrentPosition() - 30, 50);
-		}
-		}
-		}
-		else { puts("******\n"); }
-
-		if (cur.y + (cur.height / 2) < camHeight / 4) {
-		puts("+y\n");
-		if (dynamixels[3] != NULL) {
-		if (cur.getArea() < (camWidth*camHeight) / 15) {
-		dynamixels[3]->getDynamixel()->move(dynamixels[3]->getCurrentPosition() - 15, 50);
-		}
-		else {
-		dynamixels[3]->getDynamixel()->move(dynamixels[3]->getCurrentPosition() - 30, 50);
-		}
-		}
-		}
-		if (cur.y + (cur.height / 2) > (3 * camHeight) / 4) {
-		puts("-y\n");
-		if (dynamixels[3] != NULL) {
-		if (cur.getArea() < (camWidth*camHeight) / 15) {
-		dynamixels[3]->getDynamixel()->move(dynamixels[3]->getCurrentPosition() + 15, 50);
-		}
-		else {
-		dynamixels[3]->getDynamixel()->move(dynamixels[3]->getCurrentPosition() + 30, 50);
-		}
-		}
-		}
-		else { puts("******\n"); }
-
+			smileExpressionCount = 0;
+			surprisedExpressionCount = 0;
+			tiltedFaceFrameNumber = 0;
 		}
 
 
+
+		int numberOfMovement = 0;
+		if (moveToReactionPositionHappy) {
+
+			dynamixelsPositionBeforeExpression.clear();
+			for (int i = 0; i < 4; i++)
+			{
+				dynamixelsPositionBeforeExpression.push_back(dynamixels[i]->getCurrentPosition());
+				//dynamixelsPosition.push_back(rand());
+			}
+
+			while (numberOfMovement < 3)
+			{
+				if (!dynamixels[3]->getDynamixel()->getControlTable()->moving()) {
+					cout << " positionsVectorHappy[1] " << endl;
+					servoMoteurID = 1;
+					for (vector<int>::iterator it = std::next(positionsVectorHappy[1].begin()); it != positionsVectorHappy[1].end(); ++it) {
+						cout << "*it = " << *it << endl;
+						dynamixels[servoMoteurID]->getDynamixel()->move(*it, 100);
+						servoMoteurID++;
+					}
+					while (dynamixels[3]->getDynamixel()->getControlTable()->moving())
+					{
+
+					}
+				}
+				if (!dynamixels[3]->getDynamixel()->getControlTable()->moving()) {
+					cout << " positionsVectorHappy[2] " << endl;
+					servoMoteurID = 1;
+					for (vector<int>::iterator it = std::next(positionsVectorHappy[2].begin()); it != positionsVectorHappy[2].end(); ++it) {
+						cout << "*it = " << *it << endl;
+						dynamixels[servoMoteurID]->getDynamixel()->move(*it, 100);
+						servoMoteurID++;
+
+					}
+					while (dynamixels[3]->getDynamixel()->getControlTable()->moving())
+					{
+
+					}
+				}
+				numberOfMovement++;
+			}
+			moveToReactionPositionHappy = false;
+			tiltedFaceDetected = false;
+		}
+
+
+		if (moveToReactionPositionSurprise) {
+
+			dynamixelsPositionBeforeExpression.clear();
+			for (int i = 0; i < 4; i++)
+			{
+				dynamixelsPositionBeforeExpression.push_back(dynamixels[i]->getCurrentPosition());
+				//dynamixelsPosition.push_back(rand());
+			}
+
+			for (vector< vector<int> >::iterator it = positionsVectorSurprise.begin(); it != positionsVectorSurprise.end(); ++it) {
+				cout << "\n********************** " << endl;
+				servoMoteurID = 0;
+				for (vector<int>::iterator it1 = it->begin(); it1 != it->end(); ++it1) {
+
+					//printf("\nposition of dynamixels[%d] = %d\n", servoMoteurID++, *it1);
+					dynamixels[servoMoteurID]->getDynamixel()->move(*it1, 100);
+					servoMoteurID++;
+				}
+				while (dynamixels[3]->getDynamixel()->getControlTable()->moving() || dynamixels[0]->getDynamixel()->getControlTable()->moving())
+				{
+
+				}
+			}
+			moveToReactionPositionSurprise = false;
+			tiltedFaceDetected = false;
+		}
+
+
+		if (returnToInitialPosition && !dynamixels[3]->getDynamixel()->getControlTable()->moving()) {
+			puts("Return to initial position");
+			servoMoteurID = 0;
+			for (vector<int>::iterator it = dynamixelsPositionBeforeExpression.begin(); it != dynamixelsPositionBeforeExpression.end(); ++it) {
+				cout << "*it = " << *it << endl;
+				dynamixels[servoMoteurID]->getDynamixel()->move(*it, 50);
+				servoMoteurID++;
+
+			}
+			returnToInitialPosition = false;
+		}
+
+
+		if (tiltedFaceDetected) {
+			cout << "tiltedFaceDetected !!!" << endl;
+
+			int dynamixel3Position = dynamixels[3]->getCurrentPosition();
+			dynamixels[3]->getDynamixel()->move(188, 100);
+			while (dynamixels[3]->getDynamixel()->getControlTable()->moving())
+			{
+
+			}
+			dynamixels[3]->getDynamixel()->move(dynamixel3Position, 100);
+			while (dynamixels[3]->getDynamixel()->getControlTable()->moving())
+			{
+
+			}
+			tiltedFaceDetected = false;
+		}
+
+		//gui22.draw();
+		gui55.draw();
+		guiHH.draw();
+		gui33.draw();
+	}
+	
 	gui11.draw();
-	gui22.draw();
-	gui55.draw();
-	guiHH.draw();
+
 }
 
 //--------------------------------------------------------------
@@ -670,18 +842,18 @@ void ofApp::setGui22() {
 void ofApp::applyPressed() {
 	cout << std::stoi(maximumTorque) << endl;
 	cout << std::stoi(dynamixelID) << endl;
-	//cout << "Donn?es invalide\n" << endl;
-	//cout << "Donn?es invalide\n" << endl;
+	//cout << "Donn�es invalide\n" << endl;
+	//cout << "Donn�es invalide\n" << endl;
 	if (std::stoi(maximumTorque) < 0 || std::stoi(maximumTorque) > 1023
 		|| std::stoi(angleMin) < 0 || std::stoi(angleMin) > 300
 		|| std::stoi(angleMax) < 0 || std::stoi(angleMax) > 300
 		|| std::stoi(dynamixelID) < 1 || std::stoi(dynamixelID) > 4)
 	{
-		//error->setLabel("Donn?e invalide !");
-		cout << "Donn?es invalide\n";
+		//error->setLabel("Donn�e invalide !");
+		cout << "Donn�es invalide\n";
 	}
 	else {
-		cout << "Donn?es valide!\n";
+		cout << "Donn�es valide!\n";
 		switch (std::stoi(dynamixelID))
 		{
 		case 1:
@@ -741,20 +913,6 @@ void ofApp::setGuiHH() {
 	titleGuiHH.setDefaultHeight(20);
 	guiHH.setBorderColor(ofColor::black);
 
-	/*guiHH.add((new ofxGuiSpacer(5, 0, 0)));
-	guiHH.setDefaultWidth(400);
-	positionTypeMatrixParameters.add(typeMove.set("move", false));
-	positionTypeMatrixParameters.add(typeWakeUp.set("wakeUp", false));
-	positionTypeMatrixParameters.add(typeFear.set("fear", false));
-	positionTypeMatrixParameters.add(typeHappy.set("happy", false));
-	positionTypeMatrixParameters.add(typeSurprise.set("surprise", false));
-
-	matrixPositionType.setup(positionTypeMatrixParameters);
-	matrixPositionType.setShowHeader(false);
-	matrixPositionType.setAlignHorizontal();
-	matrixPositionType.allowMultipleActiveToggles(false);
-	guiHH.add(&matrixPositionType);*/
-
 	/*
 	* matrix with only one allowed active toggle
 	*/
@@ -801,25 +959,7 @@ void ofApp::setGuiHH() {
 void ofApp::savePositionPressed() {
 	if (!robotMoving) {
 		string positionType = "";
-		/*if (positionTypeMatrixParameters.getBool("move")) {
-		positionType = "move";
-		}
-
-		else if (positionTypeMatrixParameters.getBool("wakeUp")) {
-		positionType = "wakeUp";
-		}
-
-		else if (positionTypeMatrixParameters.getBool("fear")) {
-		positionType = "fear";
-		}
-
-		else if (positionTypeMatrixParameters.getBool("happy")) {
-		positionType = "happy";
-		}
-
-		else if (positionTypeMatrixParameters.getBool("suprise")) {
-		positionType = "surprise";
-		}*/
+		
 
 		if (matrix_params.at(0).get()) {
 			positionType = "move";
@@ -988,7 +1128,7 @@ void ofApp::connect(const char * portName, float protocolVersion, int baudrate, 
 		//id_dynamixel =  int[256];
 		/*
 		Probelem avec la creation du port, ajout un contructeur avec l'd et le portConnexion directement
-		la port sera cr?er en dehors de la class pour plus de comprenhobilit?
+		la port sera cr�er en dehors de la class pour plus de comprenhobilit�
 
 		*/
 		bool succesConnexion = portConnexion->open();
@@ -1115,7 +1255,9 @@ void ofApp::setGui33() {
 }
 
 void ofApp::exit() {
-	//-------------------------------------------------------------------------------
+
+	threadedObject.stopThread();
+	threadedObject.waitForThread();
 	moveThread.stop();
 	moveThread.waitForThread();
 

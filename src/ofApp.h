@@ -7,9 +7,11 @@
 #include "ofDynamixelServo.h"
 #include "ofxCvHaarFinder.h"  
 #include "ofxInputField.h"
+#include "videoThreadedObject.h"
 #include "ofxGuiExtended.h"
 #include "MoveThread.h"
-#include "VideoThread.h"
+#include "faceTrackerThread.h"
+#include "ofxFaceTrackerMulti.h"
 
 class ofApp : public ofBaseApp {
 
@@ -49,7 +51,7 @@ private:
 
 	//ofxUILabel * error;
 	//ofxUILabel * errorScan;
-	
+
 	int id;
 	int led = 1;
 	int cpt = 0;
@@ -113,9 +115,9 @@ private:
 	ofxLabelExtended dynamixel2;
 	ofxLabelExtended dynamixel3;
 	void setGui33();
-	
 
-	
+
+
 	ofxPanelExtended gui55;
 	ofxLabelExtended titleGui55;
 
@@ -148,7 +150,6 @@ private:
 	ofxMinimalButton run;
 	ofxMinimalButton stop;
 	ofxMinimalButton takeFirstPositionH;
-	ofParameter<bool> trackerThread_param;
 
 	ofxGuiMatrix matrix;
 	vector<ofParameter<bool>> matrix_params;
@@ -167,7 +168,7 @@ private:
 	void runPressed();
 	void stopPressed();
 	void takeMidlePositionPressedH();
-	void useFaceTrackerMulti(bool &val);
+
 	ofTrueTypeFont myFont;
 
 	ofxButton TakeFirstPostion;
@@ -177,6 +178,12 @@ private:
 	ofRectangle curApp;
 	MoveThread moveThread;
 	float time;
+	float expressionTime;
+	bool moveToReactionPositionHappy, moveToReactionPositionSurprise, returnToInitialPosition;
+	int smileExpressionCount = 0;
+	int surprisedExpressionCount = 0;
+
+	std::vector<int> dynamixelsPositionBeforeExpression;
 
 	//----------------------------------------------------------
 	int 				camWidth;
@@ -185,11 +192,21 @@ private:
 	vector<int> temp_validIDs;
 
 
+	videoThreadedObject threadedObject;
 	ofTexture videoTexture;
+	ofImage testImage;
 
 	cv::Rect biggestRectApp;
 	bool moveX, moveY;
 
+	faceTrackerThread trackerThread;
+	ofxFaceTracker tracker;
+	ExpressionClassifier classifier;
+	ofxFaceTrackerMulti trackerMulti;
+	int tiltedFaceFrameNumber = 0;
+	bool tiltedFaceDetected = false;
+
+	unsigned char * pix;
 	unsigned int brightness = 0;
 	int brightnessFrameNumber = 0;
 	bool isSleeping = false;
@@ -200,10 +217,4 @@ private:
 
 	bool test = false;
 	//----------------------------------------------------------
-
-	 std::vector<ofxCvBlob> blobs;
-
-	 VideoThread videoThread;
-	 ofRectangle cur;
 };
-

@@ -3,5 +3,6 @@ ofxOpenCv
 ofxXmlSettings
 ofxCv
 ofxDynamixel
+ofxFaceTracker
 ofxGuiExtended
 ofxInputField
