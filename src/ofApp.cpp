@@ -17,6 +17,7 @@ void ofApp::setup() {
 	camWidth = 640;	// try to grab at this size.
 	camHeight = 480;
 
+	//we can now get back a list of devices.
 
 	int deviceId = -1;
 
@@ -36,9 +37,13 @@ void ofApp::setup() {
 		}
 	}
 
+	//testImage.allocate(camWidth, camHeight, OF_IMAGE_COLOR);
 	videoTexture.allocate(camWidth, camHeight, GL_RGB);
+	//threadedObject.setup(1, camWidth, camHeight, false);
 
-	threadedObject.setup(0, camWidth, camHeight, false);
+	//threadedObject.start();
+
+	threadedObject.setup(1, camWidth, camHeight, false);
 
 	temp_grabber.close();
 
@@ -175,9 +180,11 @@ void ofApp::scanPressed() {
 
 	if (taille > 0) {
 		cout << "taille > 0" << endl;
+		//setGui22();
 		setGui33();
 		setGui55();
 		setGuiHH();
+
 		int randomPositionWakeUp = rand() % ((positionsVectorWakeUp.size() - 1) - 0 + 1) + 0;
 		//randomPosition = rangeRandomAlg2(0, positionsVector.size() - 1);
 		cout << "\n******************************** " << endl;
@@ -195,6 +202,8 @@ void ofApp::scanPressed() {
 		moveThread.setup(positionsVectorMove, dynamixels);
 		moveThread.start();
 
+
+		//trackerThread.start();
 	}
 
 }
@@ -213,7 +222,9 @@ void ofApp::update() {
 	//----------------------------------------------------------------------------------------------------------------
 	//----------------------------------------------------------------------------------------------------------------
 	threadedObject.lock();
+	//videoTexture.loadData(threadedObject.vidGrabber.getPixelsRef());
 	testImage.setFromPixels(threadedObject.vidGrabber.getPixels());
+	//biggestRectApp = threadedObject.biggestRect;
 	if (tracker.update(toCv(threadedObject.vidGrabber))) {
 		classifier.classify(tracker);
 	}
@@ -229,17 +240,20 @@ void ofApp::update() {
 			}
 		}
 
+		//cout << "brightness = " << brightness << endl;
 
-		if (brightness < 25000000) {
+		if (brightness < 22000000) {
 			brightnessFrameNumber++;
 		}
 
 		else {
 			brightnessFrameNumber = 0;
-
+			/*if (ofGetElapsedTimef() - time > 10 && !moveThread.isThreadRunning()) {
+			moveThread.start();
+			}*/
 		}
 
-		cout << "MoveThreadIsRunning = " << moveThread.isThreadRunning() << endl;
+		//cout << "MoveThreadIsRunning = " << moveThread.isThreadRunning() << endl;
 
 		if (brightnessFrameNumber > 50 && !isSleeping) {
 			cout << "sleep mode !!! " << endl;
@@ -269,7 +283,7 @@ void ofApp::update() {
 
 		//----------------------------------------------------------------------
 
-		if (ofGetElapsedTimef() - time > 10 && !moveThread.isThreadRunning() && brightnessFrameNumber == 0) {
+		if (ofGetElapsedTimef() - time > 7 && !moveThread.isThreadRunning() && brightnessFrameNumber == 0) {
 			moveThread.start();
 			isSleeping = false;
 			moveThread.isSleeping(isSleeping);
@@ -382,7 +396,7 @@ void ofApp::draw() {
 				//cout << "trackerThread.classifier.getProbability(i) + .5 = " << classifier.getProbability(primary) + .5 << endl;
 			}
 
-			if (smileExpressionCount > 75) {
+			if (smileExpressionCount > 30) {
 				cout << "Expression detected = Smile" << endl;
 				smileExpressionCount = 0;
 				//store the current position in a vector here
@@ -390,7 +404,7 @@ void ofApp::draw() {
 				returnToInitialPosition = true;
 			}
 
-			if (surprisedExpressionCount > 75) {
+			if (surprisedExpressionCount > 25) {
 				cout << "Expression detected = Surprised" << endl;
 				surprisedExpressionCount = 0;
 				moveToReactionPositionSurprise = true;
@@ -403,7 +417,7 @@ void ofApp::draw() {
 				tiltedFaceFrameNumber++;
 			}
 
-			if (tiltedFaceFrameNumber > 50) {
+			if (tiltedFaceFrameNumber > 30) {
 				tiltedFaceDetected = true;
 			}
 
@@ -489,6 +503,26 @@ void ofApp::draw() {
 			tiltedFaceDetected = false;
 		}
 
+		//if (moveToReactionPosition) {
+		//	puts("Move to Reaction position");
+		//	dynamixelsPositionBeforeExpression.clear();
+
+		//	for (int i = 0; i < 4; i++)
+		//	{
+		//		dynamixelsPositionBeforeExpression.push_back(dynamixels[i]->getCurrentPosition());
+		//		//dynamixelsPosition.push_back(rand());
+		//	}
+
+
+		//	servoMoteurID = 0;
+		//	for (vector<int>::iterator it = positionsVectorHappy[0].begin(); it != positionsVectorHappy[0].end(); ++it) {
+		//		cout << "*it = " << *it << endl;
+		//		dynamixels[servoMoteurID]->getDynamixel()->move(*it, 50);
+		//		servoMoteurID++;
+
+		//	}
+		//	moveToReactionPosition = false;
+		//}
 
 		if (returnToInitialPosition && !dynamixels[3]->getDynamixel()->getControlTable()->moving()) {
 			puts("Return to initial position");
@@ -520,14 +554,18 @@ void ofApp::draw() {
 			tiltedFaceDetected = false;
 		}
 
-		//gui22.draw();
+	
+		
+	}
+	
+
+	if (taille > 0) {
 		gui55.draw();
 		guiHH.draw();
 		gui33.draw();
 	}
-	
-	gui11.draw();
 
+	gui11.draw();
 }
 
 //--------------------------------------------------------------
@@ -842,18 +880,18 @@ void ofApp::setGui22() {
 void ofApp::applyPressed() {
 	cout << std::stoi(maximumTorque) << endl;
 	cout << std::stoi(dynamixelID) << endl;
-	//cout << "Donn�es invalide\n" << endl;
-	//cout << "Donn�es invalide\n" << endl;
+	//cout << "Données invalide\n" << endl;
+	//cout << "Données invalide\n" << endl;
 	if (std::stoi(maximumTorque) < 0 || std::stoi(maximumTorque) > 1023
 		|| std::stoi(angleMin) < 0 || std::stoi(angleMin) > 300
 		|| std::stoi(angleMax) < 0 || std::stoi(angleMax) > 300
 		|| std::stoi(dynamixelID) < 1 || std::stoi(dynamixelID) > 4)
 	{
-		//error->setLabel("Donn�e invalide !");
-		cout << "Donn�es invalide\n";
+		//error->setLabel("Donnée invalide !");
+		cout << "Données invalide\n";
 	}
 	else {
-		cout << "Donn�es valide!\n";
+		cout << "Données valide!\n";
 		switch (std::stoi(dynamixelID))
 		{
 		case 1:
@@ -913,6 +951,20 @@ void ofApp::setGuiHH() {
 	titleGuiHH.setDefaultHeight(20);
 	guiHH.setBorderColor(ofColor::black);
 
+	/*guiHH.add((new ofxGuiSpacer(5, 0, 0)));
+	guiHH.setDefaultWidth(400);
+	positionTypeMatrixParameters.add(typeMove.set("move", false));
+	positionTypeMatrixParameters.add(typeWakeUp.set("wakeUp", false));
+	positionTypeMatrixParameters.add(typeFear.set("fear", false));
+	positionTypeMatrixParameters.add(typeHappy.set("happy", false));
+	positionTypeMatrixParameters.add(typeSurprise.set("surprise", false));
+
+	matrixPositionType.setup(positionTypeMatrixParameters);
+	matrixPositionType.setShowHeader(false);
+	matrixPositionType.setAlignHorizontal();
+	matrixPositionType.allowMultipleActiveToggles(false);
+	guiHH.add(&matrixPositionType);*/
+
 	/*
 	* matrix with only one allowed active toggle
 	*/
@@ -959,7 +1011,25 @@ void ofApp::setGuiHH() {
 void ofApp::savePositionPressed() {
 	if (!robotMoving) {
 		string positionType = "";
-		
+		/*if (positionTypeMatrixParameters.getBool("move")) {
+		positionType = "move";
+		}
+
+		else if (positionTypeMatrixParameters.getBool("wakeUp")) {
+		positionType = "wakeUp";
+		}
+
+		else if (positionTypeMatrixParameters.getBool("fear")) {
+		positionType = "fear";
+		}
+
+		else if (positionTypeMatrixParameters.getBool("happy")) {
+		positionType = "happy";
+		}
+
+		else if (positionTypeMatrixParameters.getBool("suprise")) {
+		positionType = "surprise";
+		}*/
 
 		if (matrix_params.at(0).get()) {
 			positionType = "move";
@@ -1076,15 +1146,62 @@ void ofApp::savePositionPressed() {
 
 	}
 
+	//-----------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------
+	//cout << "\n*************************" << endl;
+	//cout << "* Saving a new position *" << endl;
+	//cout << "*************************" << endl;
+	//std::vector<int> dynamixelsPosition;
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	dynamixelsPosition.push_back(dynamixels[i]->getCurrentPosition());
+	//	//dynamixelsPosition.push_back(500);
+	//}
+	//positionsVectorMove.push_back(dynamixelsPosition);
+	//int dyn;
+	//for (vector< vector<int> >::iterator it = positionsVectorMove.begin(); it != positionsVectorMove.end(); ++it) {
+	//	cout << "\n********************** " << endl;
+	//	dyn = 0;
+	//	for (vector<int>::iterator it1 = it->begin(); it1 != it->end(); ++it1) {
+	//		printf("\nposition of dynamixels[%d] = %d\n", dyn++, *it1);
+	//	}
+	//}
 }
 
 void ofApp::runPressed() {
+	//if (positionsVectorMove.size() > 0) {
+	//	/*
+	//	int movingSpeed = 50;
+	//	int randomPosition;
+	//	int servoMoteurID;
+	//	while (robotMoving) {
+	//	Sleep(10000);
+	//	randomPosition = rand() % ((postionsVector.size()-1) - 0 + 1) + 0;
+	//	cout << "randomPosition = " << randomPosition << endl;
+	//	servoMoteurID = 0;
+	//	for (vector<int>::iterator it = postionsVector[randomPosition].begin(); it != postionsVector[randomPosition].end(); ++it) {
+	//	dynamixels[servoMoteurID]->getDynamixel()->move(*it, movingSpeed);
+	//	Sleep(500);
+	//	servoMoteurID++;
+	//	}
+	//	}*/
+	//	cout << positionsVectorMove.size() << endl;
+	//	for (auto& position : positionsVectorMove)
+	//	{
+	//		Sleep(3000);
 
+	//		for (std::vector<int>::size_type i = 0; i != position.size(); i++)
+	//		{
+	//			dynamixels[i]->getDynamixel()->move(position[i], 50);
+	//			Sleep(500);
+	//		}
+	//	}
+	//}
 	robotMoving = true;
 	moveThread.robotIsMoving(robotMoving);
-	/*if (!moveThread.isThreadRunning()) {
-	moveThread.start();
-	}*/
+	if (!moveThread.isThreadRunning()) {
+		moveThread.start();
+	}
 	cout << "\nRobot is Running " << endl;
 }
 
@@ -1128,7 +1245,7 @@ void ofApp::connect(const char * portName, float protocolVersion, int baudrate, 
 		//id_dynamixel =  int[256];
 		/*
 		Probelem avec la creation du port, ajout un contructeur avec l'd et le portConnexion directement
-		la port sera cr�er en dehors de la class pour plus de comprenhobilit�
+		la port sera créer en dehors de la class pour plus de comprenhobilité
 
 		*/
 		bool succesConnexion = portConnexion->open();
@@ -1255,10 +1372,22 @@ void ofApp::setGui33() {
 }
 
 void ofApp::exit() {
+	//cout << "#################################################### " << endl;
+	//cout << "#################################################### " << endl;
+	//Sleep(5000);
+	// stop the thread
+	//thread.stopThread();
 
+	//-------------------------------------------------------------------------------
+	/*if (threadedObject.isThreadRunning()) {
+	threadedObject.stop();
+	ofSleepMillis(300);
+	}*/
+	//-------------------------------------------------------------------------------
 	threadedObject.stopThread();
 	threadedObject.waitForThread();
 	moveThread.stop();
 	moveThread.waitForThread();
-
+	//trackerThread.stop();
+	//trackerThread.waitForThread();
 }

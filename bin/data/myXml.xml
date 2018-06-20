@@ -102,14 +102,20 @@
     <dynamixel id="3" position="770" />
 </positionForm>
 <positionForm id="16" type="move">
-    <dynamixel id="0" position="664"></dynamixel>
-    <dynamixel id="1" position="613"></dynamixel>
-    <dynamixel id="2" position="612"></dynamixel>
-    <dynamixel id="3" position="665"></dynamixel>
+    <dynamixel id="0" position="664" />
+    <dynamixel id="1" position="613" />
+    <dynamixel id="2" position="612" />
+    <dynamixel id="3" position="665" />
 </positionForm>
 <positionForm id="17" type="wakeUp">
-    <dynamixel id="0" position="606"></dynamixel>
-    <dynamixel id="1" position="526"></dynamixel>
-    <dynamixel id="2" position="499"></dynamixel>
-    <dynamixel id="3" position="729"></dynamixel>
+    <dynamixel id="0" position="606" />
+    <dynamixel id="1" position="526" />
+    <dynamixel id="2" position="499" />
+    <dynamixel id="3" position="729" />
+</positionForm>
+<positionForm id="18" type="move">
+    <dynamixel id="0" position="229"></dynamixel>
+    <dynamixel id="1" position="615"></dynamixel>
+    <dynamixel id="2" position="615"></dynamixel>
+    <dynamixel id="3" position="594"></dynamixel>
 </positionForm>
