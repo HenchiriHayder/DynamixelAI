@@ -253,7 +253,7 @@ void ofApp::update() {
 			}*/
 		}
 
-		//cout << "MoveThreadIsRunning = " << moveThread.isThreadRunning() << endl;
+		cout << "MoveThreadIsRunning = " << moveThread.isThreadRunning() << endl;
 
 		if (brightnessFrameNumber > 50 && !isSleeping) {
 			cout << "sleep mode !!! " << endl;
@@ -1003,7 +1003,7 @@ void ofApp::setGuiHH() {
 	guiHH.add((new ofxGuiSpacer(5, 0, 0)));
 	matrix_params.push_back(ofParameter<bool>("move", false));
 	matrix_params.push_back(ofParameter<bool>("wakeUp", false));
-	matrix_params.push_back(ofParameter<bool>("fear", false));
+	matrix_params.push_back(ofParameter<bool>("sleep", false));
 	matrix_params.push_back(ofParameter<bool>("happy", false));
 	matrix_params.push_back(ofParameter<bool>("surprise", false));
 	//matrix_params.push_back(ofParameter<bool>("active", false));
@@ -1072,7 +1072,7 @@ void ofApp::savePositionPressed() {
 			cout << "\nwakeUp" << endl;
 		}
 		else if (matrix_params.at(2).get()) {
-			positionType = "fear";
+			positionType = "sleep";
 			cout << "\nfear" << endl;
 		}
 		else if (matrix_params.at(3).get()) {
@@ -1137,9 +1137,9 @@ void ofApp::savePositionPressed() {
 			}
 		}
 		else if (matrix_params.at(2).get()) {
-			positionsVectorFear.push_back(dynamixelsPosition);
+			positionsVectorSleep.push_back(dynamixelsPosition);
 			int dyn;
-			for (vector< vector<int> >::iterator it = positionsVectorFear.begin(); it != positionsVectorFear.end(); ++it) {
+			for (vector< vector<int> >::iterator it = positionsVectorSleep.begin(); it != positionsVectorSleep.end(); ++it) {
 				cout << "\n********************** " << endl;
 				dyn = 0;
 				for (vector<int>::iterator it1 = it->begin(); it1 != it->end(); ++it1) {

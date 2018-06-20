@@ -120,8 +120,14 @@
     <dynamixel id="3" position="594" />
 </positionForm>
 <positionForm id="19" type="move">
-    <dynamixel id="0" position="530"></dynamixel>
-    <dynamixel id="1" position="614"></dynamixel>
-    <dynamixel id="2" position="518"></dynamixel>
-    <dynamixel id="3" position="741"></dynamixel>
+    <dynamixel id="0" position="530" />
+    <dynamixel id="1" position="614" />
+    <dynamixel id="2" position="518" />
+    <dynamixel id="3" position="741" />
+</positionForm>
+<positionForm id="20" type="sleep">
+    <dynamixel id="0" position="420"></dynamixel>
+    <dynamixel id="1" position="533"></dynamixel>
+    <dynamixel id="2" position="818"></dynamixel>
+    <dynamixel id="3" position="765"></dynamixel>
 </positionForm>
