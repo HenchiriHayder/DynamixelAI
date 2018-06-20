@@ -217,4 +217,5 @@ private:
 
 	bool test = false;
 	//----------------------------------------------------------
+	int surprisePosNumber = 0;
 };

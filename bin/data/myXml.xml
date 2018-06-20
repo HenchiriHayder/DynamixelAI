@@ -114,8 +114,14 @@
     <dynamixel id="3" position="729" />
 </positionForm>
 <positionForm id="18" type="move">
-    <dynamixel id="0" position="229"></dynamixel>
-    <dynamixel id="1" position="615"></dynamixel>
-    <dynamixel id="2" position="615"></dynamixel>
-    <dynamixel id="3" position="594"></dynamixel>
+    <dynamixel id="0" position="229" />
+    <dynamixel id="1" position="615" />
+    <dynamixel id="2" position="615" />
+    <dynamixel id="3" position="594" />
+</positionForm>
+<positionForm id="19" type="move">
+    <dynamixel id="0" position="530"></dynamixel>
+    <dynamixel id="1" position="614"></dynamixel>
+    <dynamixel id="2" position="518"></dynamixel>
+    <dynamixel id="3" position="741"></dynamixel>
 </positionForm>

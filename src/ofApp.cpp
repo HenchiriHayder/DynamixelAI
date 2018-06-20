@@ -278,15 +278,34 @@ void ofApp::update() {
 
 			isSleeping = true;
 			moveThread.isSleeping(isSleeping);
-			time = ofGetElapsedTimef();
+			//time = ofGetElapsedTimef();
 		}
 
 		//----------------------------------------------------------------------
 
-		if (ofGetElapsedTimef() - time > 7 && !moveThread.isThreadRunning() && brightnessFrameNumber == 0) {
-			moveThread.start();
+		if (isSleeping && brightnessFrameNumber == 0) {
 			isSleeping = false;
 			moveThread.isSleeping(isSleeping);
+
+			int randomPositionWakeUp = rand() % ((positionsVectorWakeUp.size() - 1) - 0 + 1) + 0;
+			//randomPosition = rangeRandomAlg2(0, positionsVector.size() - 1);
+			cout << "\n******************************** " << endl;
+			cout << "randomPositionWakeUp = " << randomPositionWakeUp << endl;
+
+			int id = 0;
+			for (vector<int>::iterator it = positionsVectorWakeUp[randomPositionWakeUp].begin(); it != positionsVectorWakeUp[randomPositionWakeUp].end(); ++it) {
+				cout << "*it = " << *it << endl;
+				dynamixels[id]->getDynamixel()->move(*it, 50);
+				id++;
+
+			}
+
+			moveThread.start();
+		}
+
+		if (ofGetElapsedTimef() - time > 7 && !moveThread.isThreadRunning() && brightnessFrameNumber == 0) {
+			moveThread.start();
+			
 			faceDetected = false;
 			moveThread.IsFaceDetected(faceDetected);
 		}
@@ -484,20 +503,33 @@ void ofApp::draw() {
 				dynamixelsPositionBeforeExpression.push_back(dynamixels[i]->getCurrentPosition());
 				//dynamixelsPosition.push_back(rand());
 			}
-
+			surprisePosNumber = 0;
 			for (vector< vector<int> >::iterator it = positionsVectorSurprise.begin(); it != positionsVectorSurprise.end(); ++it) {
 				cout << "\n********************** " << endl;
 				servoMoteurID = 0;
-				for (vector<int>::iterator it1 = it->begin(); it1 != it->end(); ++it1) {
+				if (surprisePosNumber >= 3) {
+					dynamixels[0]->getDynamixel()->move(dynamixelsPositionBeforeExpression[0], 100);
+					servoMoteurID = 1;
+					for (vector<int>::iterator it1 = std::next(it->begin()); it1 != it->end(); ++it1) {
 
-					//printf("\nposition of dynamixels[%d] = %d\n", servoMoteurID++, *it1);
-					dynamixels[servoMoteurID]->getDynamixel()->move(*it1, 100);
-					servoMoteurID++;
+						//printf("\nposition of dynamixels[%d] = %d\n", servoMoteurID++, *it1);
+						dynamixels[servoMoteurID]->getDynamixel()->move(*it1, 100);
+						servoMoteurID++;
+					}
+				}
+				else {
+					for (vector<int>::iterator it1 = it->begin(); it1 != it->end(); ++it1) {
+
+						//printf("\nposition of dynamixels[%d] = %d\n", servoMoteurID++, *it1);
+						dynamixels[servoMoteurID]->getDynamixel()->move(*it1, 100);
+						servoMoteurID++;
+					}
 				}
 				while (dynamixels[3]->getDynamixel()->getControlTable()->moving() || dynamixels[0]->getDynamixel()->getControlTable()->moving())
 				{
 
 				}
+				surprisePosNumber++;
 			}
 			moveToReactionPositionSurprise = false;
 			tiltedFaceDetected = false;
@@ -1372,22 +1404,8 @@ void ofApp::setGui33() {
 }
 
 void ofApp::exit() {
-	//cout << "#################################################### " << endl;
-	//cout << "#################################################### " << endl;
-	//Sleep(5000);
-	// stop the thread
-	//thread.stopThread();
-
-	//-------------------------------------------------------------------------------
-	/*if (threadedObject.isThreadRunning()) {
-	threadedObject.stop();
-	ofSleepMillis(300);
-	}*/
-	//-------------------------------------------------------------------------------
 	threadedObject.stopThread();
 	threadedObject.waitForThread();
 	moveThread.stop();
 	moveThread.waitForThread();
-	//trackerThread.stop();
-	//trackerThread.waitForThread();
 }
