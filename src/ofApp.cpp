@@ -253,14 +253,15 @@ void ofApp::update() {
 			}*/
 		}
 
-		cout << "MoveThreadIsRunning = " << moveThread.isThreadRunning() << endl;
-
 		if (brightnessFrameNumber > 50 && !isSleeping) {
 			cout << "sleep mode !!! " << endl;
 			if (moveThread.isThreadRunning()) {
 				moveThread.stop();
 
 			}
+			isSleeping = true;
+			moveThread.isSleeping(isSleeping);
+			//time = ofGetElapsedTimef();
 
 			int randomPositionSleep = rand() % ((positionsVectorSleep.size() - 1) - 0 + 1) + 0;
 			//randomPosition = rangeRandomAlg2(0, positionsVector.size() - 1);
@@ -276,14 +277,12 @@ void ofApp::update() {
 			}
 			while (dynamixels[3]->getDynamixel()->getControlTable()->moving()) {}
 
-			isSleeping = true;
-			moveThread.isSleeping(isSleeping);
-			//time = ofGetElapsedTimef();
+			
 		}
 
 		//----------------------------------------------------------------------
 
-		if (isSleeping && brightnessFrameNumber == 0) {
+		if (isSleeping && !moveThread.isThreadRunning() && brightnessFrameNumber == 0) {
 			isSleeping = false;
 			moveThread.isSleeping(isSleeping);
 
@@ -299,8 +298,10 @@ void ofApp::update() {
 				id++;
 
 			}
-
-			moveThread.start();
+			//if (!moveThread.isThreadRunning()) {
+				moveThread.start();
+			//}
+			
 		}
 
 		if (ofGetElapsedTimef() - time > 7 && !moveThread.isThreadRunning() && brightnessFrameNumber == 0) {
@@ -363,6 +364,9 @@ void ofApp::update() {
 			smileExpressionCount = 0;
 			surprisedExpressionCount = 0;
 		}
+	}
+	if(taille > 0){
+	cout << "MoveThreadIsRunning = " << moveThread.isThreadRunning() << endl;
 	}
 }
 
@@ -571,7 +575,7 @@ void ofApp::draw() {
 
 		if (tiltedFaceDetected) {
 			cout << "tiltedFaceDetected !!!" << endl;
-
+			tiltedFaceDetected = false;
 			int dynamixel3Position = dynamixels[3]->getCurrentPosition();
 			dynamixels[3]->getDynamixel()->move(188, 100);
 			while (dynamixels[3]->getDynamixel()->getControlTable()->moving())
@@ -583,7 +587,7 @@ void ofApp::draw() {
 			{
 
 			}
-			tiltedFaceDetected = false;
+			
 		}
 
 	
@@ -1073,7 +1077,7 @@ void ofApp::savePositionPressed() {
 		}
 		else if (matrix_params.at(2).get()) {
 			positionType = "sleep";
-			cout << "\nfear" << endl;
+			cout << "\nsleep" << endl;
 		}
 		else if (matrix_params.at(3).get()) {
 			positionType = "happy";

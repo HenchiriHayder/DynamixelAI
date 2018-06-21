@@ -126,8 +126,21 @@
     <dynamixel id="3" position="741" />
 </positionForm>
 <positionForm id="20" type="sleep">
-    <dynamixel id="0" position="420"></dynamixel>
-    <dynamixel id="1" position="533"></dynamixel>
-    <dynamixel id="2" position="818"></dynamixel>
-    <dynamixel id="3" position="765"></dynamixel>
+    <dynamixel id="0" position="420" />
+    <dynamixel id="1" position="533" />
+    <dynamixel id="2" position="818" />
+    <dynamixel id="3" position="765" />
 </positionForm>
+<positionForm id="21" type="move">
+    <dynamixel id="0" position="120" />
+    <dynamixel id="1" position="613" />
+    <dynamixel id="2" position="612" />
+    <dynamixel id="3" position="665" />
+</positionForm>
+<positionForm id="22" type="move">
+    <dynamixel id="0" position="778"></dynamixel>
+    <dynamixel id="1" position="618"></dynamixel>
+    <dynamixel id="2" position="618"></dynamixel>
+    <dynamixel id="3" position="645"></dynamixel>
+</positionForm>
+
